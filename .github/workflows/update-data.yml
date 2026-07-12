@@ -1,0 +1,48 @@
+name: credit-valve-data
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    - cron: "20 22 * * 0-4"   # UTC 22:20 = 한국시간 아침 7:20 (월~금)
+  workflow_dispatch:            # Actions 탭에서 수동 실행 버튼 활성화
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: FRED 스프레드 데이터 수집
+        run: |
+          mkdir -p data
+          START=$(date -d "420 days ago" +%Y-%m-%d)
+          curl -sf --retry 3 --retry-delay 15 "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLC0A0CM&cosd=$START" \
+            -H "User-Agent: Mozilla/5.0" -o /tmp/ig.csv
+          curl -sf --retry 3 --retry-delay 15 "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=$START" \
+            -H "User-Agent: Mozilla/5.0" -o /tmp/hy.csv
+          python3 << 'EOF'
+          import json, datetime
+
+          def parse(path):
+              rows = [l.split(",") for l in open(path).read().strip().split("\n")[1:]]
+              return [{"d": r[0], "v": float(r[1])} for r in rows
+                      if len(r) > 1 and r[1] not in (".", "")]
+
+          out = {
+              "updated": datetime.datetime.now(datetime.UTC).isoformat(),
+              "IG_OAS": parse("/tmp/ig.csv"),
+              "HY_OAS": parse("/tmp/hy.csv"),
+          }
+          json.dump(out, open("data/oas.json", "w"))
+          print("IG:", len(out["IG_OAS"]), "HY:", len(out["HY_OAS"]))
+          EOF
+
+      - name: 변경분 커밋
+        run: |
+          git config user.name "credit-valve-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/oas.json
+          git diff --cached --quiet || git commit -m "스프레드 데이터 자동 갱신"
+          git push
