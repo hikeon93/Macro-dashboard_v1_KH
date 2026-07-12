@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AI Capex 크레딧 밸브</title>
 
-<!-- PWA 설치 정보 -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0E1220">
-<!-- iOS 홈 화면 설치용 -->
+<meta name="theme-color" content="#0E1220" id="metaTheme">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,87 +14,90 @@
 
 <style>
   :root {
-    --bg: #0E1220; --card: #151B2E; --card2: #131829;
-    --line: #232B42; --line2: #202741;
-    --txt: #E6EAF2; --sub: #8B93A7; --dim: #5A6378; --soft: #C7CDDB;
-    --up: #F04452; --dn: #3182F6; --ok: #2BC48A; --warn: #F5B32F;
+    --bg:#0E1220; --card:#151B2E; --card2:#131829;
+    --line:#232B42; --line2:#202741;
+    --txt:#E6EAF2; --sub:#8B93A7; --dim:#5A6378; --soft:#C7CDDB;
+    --up:#F04452; --dn:#3182F6; --ok:#2BC48A; --warn:#F5B32F;
+    --blockbg:rgba(255,255,255,0.02); --rowline:rgba(255,255,255,0.05);
+    --link:#9EC2FF; --tagtxt:#F5B32F; --tagbg:rgba(245,179,47,0.1); --tagline:rgba(245,179,47,0.3);
+    --notebg:rgba(245,179,47,0.07); --noteline:rgba(245,179,47,0.25); --notetxt:#E8D9B0;
+    --btnline:#2A3247; --btnbg:rgba(240,68,82,0.12); --btntxt:#FFDDE0;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body {
-    background: var(--bg); color: var(--txt);
-    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-    padding: calc(18px + env(safe-area-inset-top)) 14px 40px;
+  html[data-theme="light"] {
+    --bg:#F2F4F9; --card:#FFFFFF; --card2:#FFFFFF;
+    --line:#E2E7F1; --line2:#E7EBF4;
+    --txt:#1B2334; --sub:#5E6880; --dim:#98A1B5; --soft:#414D68;
+    --up:#E03040; --dn:#2563EB; --ok:#189A6C; --warn:#C08A00;
+    --blockbg:rgba(20,30,60,0.035); --rowline:rgba(20,30,60,0.08);
+    --link:#2458C7; --tagtxt:#9A6B00; --tagbg:rgba(245,179,47,0.14); --tagline:rgba(180,130,20,0.35);
+    --notebg:rgba(245,179,47,0.12); --noteline:rgba(180,130,20,0.35); --notetxt:#6E5209;
+    --btnline:#C9D2E4; --btnbg:rgba(224,48,64,0.08); --btntxt:#B02030;
   }
-  .mono { font-family: 'SF Mono', 'Roboto Mono', Menlo, monospace; }
-  .app { max-width: 720px; margin: 0 auto; }
-
-  .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
-  .title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
-  .subtitle { font-size: 12.5px; color: var(--sub); margin-top: 4px; line-height: 1.5; }
-  #refreshBtn {
-    background: rgba(240,68,82,0.12); color: #FFDDE0; border: 1px solid var(--up);
-    border-radius: 9px; padding: 8px 14px; font-size: 12.5px; font-weight: 700;
-    font-family: inherit; cursor: pointer; white-space: nowrap;
-  }
-  #refreshBtn:disabled { opacity: 0.5; }
-  #updated { font-size: 10.5px; color: var(--dim); margin-bottom: 14px; }
-
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
-  .cardHead { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-  .cardTitle { font-size: 14px; font-weight: 800; }
-  .caret { color: var(--dim); font-size: 11px; }
-  .thRow { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; background: var(--dim); }
-  .thName { font-size: 13px; font-weight: 700; }
-  .thVal { margin-left: 8px; font-weight: 700; }
-  .thLevels { font-size: 11.5px; color: var(--sub); margin-top: 2px; line-height: 1.5; }
-  .guideNote {
-    margin-top: 14px; padding: 10px 12px; background: rgba(245,179,47,0.07);
-    border: 1px solid rgba(245,179,47,0.25); border-radius: 10px;
-    font-size: 12px; line-height: 1.65; color: #E8D9B0;
-  }
-
-  .ratioCard { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    padding: 12px 16px; margin-bottom: 14px; }
-  .ratioLabel { font-size: 12.5px; font-weight: 700; color: var(--soft); }
-  .ratioHint { font-size: 11.5px; color: var(--sub); flex-basis: 100%; line-height: 1.5; }
-
-  .section { background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 14px 12px; margin-bottom: 14px; }
-  .secHead { display: flex; align-items: center; gap: 8px; padding: 0 6px; }
-  .secTag { font-size: 10.5px; font-weight: 700; color: var(--warn);
-    background: rgba(245,179,47,0.1); border: 1px solid rgba(245,179,47,0.3);
-    border-radius: 6px; padding: 2px 7px; }
-  .secLabel { font-size: 14px; font-weight: 800; }
-  .secDesc { font-size: 12px; color: var(--sub); line-height: 1.6; padding: 6px 6px 10px; }
-
-  .rowWrap { border-top: 1px solid rgba(255,255,255,0.05); }
-  .row { display: flex; align-items: center; gap: 10px; padding: 11px 6px; cursor: pointer; }
-  .tk { font-size: 12.5px; font-weight: 800; color: var(--soft); margin-right: 8px; }
-  .tname { font-size: 12.5px; color: var(--sub); }
-  .price { font-size: 13.5px; font-weight: 700; min-width: 70px; text-align: right; }
-  .chg { font-size: 12.5px; font-weight: 700; min-width: 66px; text-align: right; }
-  .skeleton { font-size: 12px; color: var(--dim); }
-
-  .panel { padding: 8px 6px 16px; border-top: 1px dashed rgba(255,255,255,0.06); }
-  .tfRow { display: flex; gap: 6px; margin-bottom: 10px; }
-  .tfBtn { background: transparent; color: var(--sub); border: 1px solid #2A3247;
-    border-radius: 7px; padding: 5px 11px; font-size: 12px; font-weight: 600;
-    font-family: inherit; cursor: pointer; }
-  .tfBtn.on { background: rgba(240,68,82,0.12); color: #FFDDE0; border-color: var(--up); }
-  .chartStats { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-bottom: 4px; }
-  .chartMinMax { color: var(--dim); font-size: 10.5px; }
-  .chartMsg { font-size: 12px; color: var(--sub); padding: 16px 0; }
-  .interp { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-  .interpBlock { font-size: 12px; line-height: 1.7; color: var(--soft); padding: 8px 10px;
-    background: rgba(255,255,255,0.02); border-radius: 0 8px 8px 0; }
-
-  .linkRow { display: block; text-decoration: none; border-top: 1px solid rgba(255,255,255,0.05); padding: 10px 6px; }
-  .linkLabel { font-size: 13px; font-weight: 700; color: #9EC2FF; }
-  .linkTip { font-size: 11.5px; color: var(--sub); margin-top: 3px; line-height: 1.5; }
-
-  .footer { font-size: 11px; color: var(--dim); line-height: 1.7; padding: 4px 6px 0; }
-  .cUp { color: var(--up); } .cDn { color: var(--dn); }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body { background:var(--bg); color:var(--txt);
+    font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+    padding:calc(18px + env(safe-area-inset-top)) 14px 40px;
+    transition:background 0.2s; }
+  .mono { font-family:'SF Mono','Roboto Mono',Menlo,monospace; }
+  .app { max-width:720px; margin:0 auto; }
+  .header { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px; }
+  .title { font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .subtitle { font-size:12.5px; color:var(--sub); margin-top:4px; line-height:1.5; }
+  .btnGroup { display:flex; gap:6px; flex-shrink:0; }
+  .hBtn { background:var(--btnbg); color:var(--btntxt); border:1px solid var(--up);
+    border-radius:9px; padding:8px 12px; font-size:12.5px; font-weight:700;
+    font-family:inherit; cursor:pointer; white-space:nowrap; }
+  .hBtn:disabled { opacity:0.5; }
+  .hBtn.ghost { background:transparent; color:var(--sub); border-color:var(--btnline); }
+  #updated { font-size:10.5px; color:var(--dim); margin-bottom:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:14px; }
+  .cardHead { display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+  .cardTitle { font-size:14px; font-weight:800; }
+  .caret { color:var(--dim); font-size:11px; }
+  .thRow { display:flex; gap:10px; align-items:flex-start; margin-top:12px; }
+  .dot { width:10px; height:10px; border-radius:50%; margin-top:4px; flex-shrink:0; background:var(--dim); }
+  .thName { font-size:13px; font-weight:700; }
+  .thVal { margin-left:8px; font-weight:700; }
+  .thLevels { font-size:11.5px; color:var(--sub); margin-top:2px; line-height:1.5; }
+  .guideNote { margin-top:14px; padding:10px 12px; background:var(--notebg);
+    border:1px solid var(--noteline); border-radius:10px;
+    font-size:12px; line-height:1.65; color:var(--notetxt); }
+  .ratioBox { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    background:var(--blockbg); border-radius:10px; padding:10px 12px; margin:4px 6px 10px; }
+  .ratioLabel { font-size:12.5px; font-weight:700; color:var(--soft); }
+  .ratioHint { font-size:11.5px; color:var(--sub); flex-basis:100%; line-height:1.5; }
+  .section { background:var(--card2); border:1px solid var(--line2); border-radius:14px; padding:14px 12px; margin-bottom:14px; }
+  .secHead { display:flex; align-items:center; gap:8px; padding:0 6px; }
+  .secTag { font-size:10.5px; font-weight:700; color:var(--tagtxt);
+    background:var(--tagbg); border:1px solid var(--tagline);
+    border-radius:6px; padding:2px 7px; white-space:nowrap; }
+  .secLabel { font-size:14px; font-weight:800; }
+  .secDesc { font-size:12px; color:var(--sub); line-height:1.6; padding:6px 6px 10px; }
+  .rowWrap { border-top:1px solid var(--rowline); }
+  .row { display:flex; align-items:center; gap:10px; padding:11px 6px; cursor:pointer; }
+  .tk { font-size:12.5px; font-weight:800; color:var(--soft); margin-right:8px; }
+  .tname { font-size:12.5px; color:var(--sub); }
+  .price { font-size:13.5px; font-weight:700; min-width:70px; text-align:right; }
+  .chg { font-size:12.5px; font-weight:700; min-width:66px; text-align:right; }
+  .skeleton { font-size:12px; color:var(--dim); }
+  .failTxt { font-size:11.5px; color:var(--warn); }
+  .panel { padding:8px 6px 16px; border-top:1px dashed var(--rowline); }
+  .tfRow { display:flex; gap:6px; margin-bottom:10px; }
+  .tfBtn { background:transparent; color:var(--sub); border:1px solid var(--btnline);
+    border-radius:7px; padding:5px 11px; font-size:12px; font-weight:600;
+    font-family:inherit; cursor:pointer; }
+  .tfBtn.on { background:var(--btnbg); color:var(--btntxt); border-color:var(--up); }
+  .chartStats { display:flex; justify-content:space-between; align-items:baseline; font-size:12px; margin-bottom:4px; }
+  .chartMinMax { color:var(--dim); font-size:10.5px; }
+  .chartMsg { font-size:12px; color:var(--sub); padding:16px 0; }
+  .interp { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+  .interpBlock { font-size:12px; line-height:1.7; color:var(--soft); padding:8px 10px;
+    background:var(--blockbg); border-radius:0 8px 8px 0; }
+  .linkRow { display:block; text-decoration:none; border-top:1px solid var(--rowline); padding:10px 6px; }
+  .linkLabel { font-size:13px; font-weight:700; color:var(--link); }
+  .linkTip { font-size:11.5px; color:var(--sub); margin-top:3px; line-height:1.5; }
+  .footer { font-size:11px; color:var(--dim); line-height:1.7; padding:4px 6px 0; }
+  .cUp { color:var(--up); } .cDn { color:var(--dn); }
 </style>
 </head>
 <body>
@@ -106,15 +107,16 @@
       <div class="title">AI Capex 크레딧 밸브</div>
       <div class="subtitle">iM증권 4개 지표 프록시 · "부외화 밸브가 막히는 순간 = 메모리 정점 신호"</div>
     </div>
-    <button id="refreshBtn">새로고침</button>
+    <div class="btnGroup">
+      <button class="hBtn ghost" id="themeBtn">테마</button>
+      <button class="hBtn" id="refreshBtn">새로고침</button>
+    </div>
   </div>
   <div id="updated"></div>
   <div id="thresholdCard"></div>
-  <div id="ratioCard"></div>
   <div id="sections"></div>
-  <div id="linksSection"></div>
   <div class="footer">
-    데이터: Yahoo Finance(주가) · FRED / ICE BofA(스프레드). 시세는 지연·오류 가능.
+    데이터: Yahoo Finance(주가) · FRED / ICE BofA(스프레드, 저장소 자동갱신). 시세는 지연·오류 가능.
     이 보드는 판단 보조 도구이며 매매 신호가 아닙니다 — 5대 매매원칙이 항상 우선합니다.
   </div>
 </div>
@@ -122,105 +124,128 @@
 <script>
 "use strict";
 
-// ───────── 데이터 정의 ─────────
-const UP = "#F04452", DN = "#3182F6", OK = "#2BC48A", WARN = "#F5B32F", ALERT = "#F04452", DIM = "#5A6378";
+const UP_TXT = "cUp", DN_TXT = "cDn";
+function upColor(){ return getComputedStyle(document.documentElement).getPropertyValue("--up").trim(); }
+function dnColor(){ return getComputedStyle(document.documentElement).getPropertyValue("--dn").trim(); }
 
+// ───────── 섹션 정의: 지표 ①→②→③→④ 순서 ─────────
 const SECTIONS = [
   {
-    id: "s4", tag: "지표 ④",
-    label: "빅테크 CDS 프록시 — 크레딧 시장의 부도 보험료",
-    desc: "CDS 실시간 호가는 기관 단말 영역. 여기서는 ORCL 주가 + 회사채 스프레드 지수로 같은 방향을 읽습니다. CDS 급등 뉴스는 아래 '수동 점검' 링크로.",
-    tickers: [
-      { k: "ORCL", name: "오라클 (CDS 대표 관측주)", y: "ORCL", type: "yahoo",
-        up: "자금조달 계획 명확화·백로그의 현금 전환 확인 등으로 크레딧 우려가 완화될 때 주가와 CDS는 반대로 움직이는 경향. 주가 반등 + CDS 하락 동반이면 밸브 정상.",
-        dn: "주가 하락이 CDS 상승과 동반되면 크레딧 경로의 경고. 주가만 빠지고 CDS가 조용하면 단순 밸류에이션 조정일 가능성. 반드시 'Oracle CDS' 뉴스와 교차 확인.",
-        note: "오라클 5년 CDS: 25.12월 ~126bp → 26.4월 ~198bp(사상 최고). 250bp 돌파 뉴스가 나오면 이 보드 전체를 경보 모드로 읽을 것. 부외 리스 약정 $248B가 FY26 3Q~2028 개시 예정." },
-      { k: "IG_OAS", name: "미 투자등급 회사채 스프레드 (bp)", type: "fred", fred: "BAMLC0A0CM", scale: 100, unit: "bp",
-        up: "확대 = 크레딧 시장 전반이 위험을 재평가 중. 데이터센터 부채(SPV·ABS 포함)의 조달비용이 함께 오르므로 '부외화 밸브'가 조여지는 방향.",
-        dn: "축소 = 크레딧 시장 평온. 빅테크의 부채 조달이 순조롭다는 뜻이고 AI Capex 지속 가능성에 우호적.",
-        note: "역사적 감각: 60~90bp 평시, 100bp 상회 시 스트레스, 130bp+ 위기 초입. 데이터센터 전용 지수는 없어 시장 전체의 온도계로 사용." },
-      { k: "HY_OAS", name: "미 하이일드 스프레드 (bp)", type: "fred", fred: "BAMLH0A0HYM2", scale: 100, unit: "bp",
-        up: "확대 = 저신용 기업부터 돈줄이 마르기 시작. IG보다 먼저, 크게 움직이는 조기경보기.",
-        dn: "축소 = 위험선호 유지. 사모신용·프로젝트본드 쪽 수요도 대체로 견조하다는 방증.",
-        note: "역사적 감각: 300bp 이하 과열, 350~500bp 정상~경계, 500bp+ 경보(경기침체 프라이싱). 닷컴·GFC 때는 800~2,000bp." },
+    id:"s1", tag:"지표 ①",
+    label:"데이터센터 SPV 신디케이션 — 대형 딜이 팔리는가",
+    desc:"딜 단위 사건이라 시세로는 직접 안 잡힙니다. HYG/LQD 상대강도를 일간 온도계로 쓰고, 실제 딜 성사·철회는 아래 공시·알림으로 확인하세요. 관찰 포인트: 딜 규모 축소, 발행금리 상향 후 겨우 완판, 앵커 투자자 이탈, 딜 철회.",
+    ratio:true,
+    tickers:[
+      { k:"HYG", name:"하이일드 회사채 ETF", y:"HYG", type:"yahoo",
+        up:"위험선호 유지. 신용도 낮은 채권까지 팔린다 = SPV·프로젝트본드 신디케이션도 잘 돌아갈 환경.",
+        dn:"하이일드부터 매도 = 크레딧 위험회피의 시작. 대형 딜 소화 불량의 전조.",
+        note:"단독으로 보지 말고 LQD와의 상대강도(위 배지)로 볼 것." },
+      { k:"LQD", name:"투자등급 회사채 ETF", y:"LQD", type:"yahoo",
+        up:"금리 하락 또는 우량 크레딧 선호. HYG가 같이 오르면 건강한 랠리, LQD만 오르면 질적 도피(flight to quality).",
+        dn:"금리 상승 국면이면 중립. HYG와 동반 급락이면 크레딧 전반의 스트레스.",
+        note:"LQD에는 오라클 채권 등 IG 지수 구성종목 다수 포함 — 오라클이 기침하면 LQD도 반응." },
+    ],
+    links:[
+      { label:"SEC EDGAR — 오라클 8-K 공시", url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=ORCL&type=8-K", tip:"SPV·리스 약정 등 대형 자금조달이 여기로 공시됨" },
+      { label:"SEC EDGAR — 메타 8-K 공시", url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=META&type=8-K", tip:"Hyperion급 SPV 딜의 원문 확인" },
+      { label:"Google Alerts — 키워드 자동 감시", url:"https://www.google.com/alerts", tip:"추천 키워드: data center SPV / hyperscaler financing / syndication" },
     ],
   },
   {
-    id: "s2", tag: "지표 ②",
-    label: "사모신용 환매 동향 — 데이터센터 건설자금의 돈줄",
-    desc: "비상장 펀드 환매는 SEC 공시로만 나오지만, 상장 운용사·BDC 주가가 실시간 프록시 역할을 합니다. 급락 + 환매 뉴스 조합이 진짜 신호.",
-    tickers: [
-      { k: "OWL", name: "Blue Owl (사모신용 운용사)", y: "OWL", type: "yahoo",
-        up: "환매 사태 진정·자산 정상가 매각(예: 26.2월 $1.4B을 액면 99.7%에 매각) 등 신뢰 회복 신호. 지표② 완화.",
-        dn: "추가 환매 제한·NAV 논란·자산 헐값 매각 뉴스와 동반 하락이면 사모신용 → 데이터센터 자금 파이프가 좁아지는 중.",
-        note: "26년 1~4월 실사례: 테크 비히클 환매요청 40.7%, 크레딧 펀드 21.9% → 분기 5% 캡 발동, OBDC II 환매 영구 중단. 이 종목의 급락은 '남 얘기'가 아니라 지표② 그 자체." },
-      { k: "BIZD", name: "VanEck BDC ETF (사모신용 시장 전체)", y: "BIZD", type: "yahoo",
-        up: "BDC 전반의 NAV 할인 축소 = 환매 압력 완화. 사모신용 시장이 정상 작동 중.",
-        dn: "지수 전체가 미끄러지면 개별사 문제가 아니라 업계 전체의 자금이탈. 지표②의 광역 경보.",
-        note: "BDC = 상장된 사모신용 펀드. 비상장 펀드의 환매는 분기에 한 번 공시되지만 BIZD는 매일 거래되므로 선행지표로 기능." },
-      { k: "BXSL", name: "Blackstone Secured Lending", y: "BXSL", type: "yahoo",
-        up: "업계 1위 블랙스톤 계열이 견조하면 환매 사태가 Blue Owl 개별 이슈에 그친다는 뜻.",
-        dn: "BXSL까지 동반 급락하면 소프트웨어 대출 부실 우려가 업계 전체로 번지는 국면.",
-        note: "Blue Owl(개별 진앙지) vs BXSL·ARCC(업계 대표)를 나눠 보면 '개별 사고'인지 '시스템 문제'인지 구분 가능." },
-      { k: "ARCC", name: "Ares Capital (최대 BDC)", y: "ARCC", type: "yahoo",
-        up: "미국 최대 BDC의 안정 = 직접대출 시장의 기초체력 유지.",
-        dn: "ARCC의 배당 삭감·부실채권(non-accrual) 증가 뉴스와 동반 하락은 사모신용 사이클 하강의 확정 신호에 가까움.",
-        note: "BDC 포트폴리오의 약 20%가 소프트웨어 대출 — AI가 SaaS 기업을 파괴하면 사모신용이 먼저 다친다는 것이 26년 상반기 환매 사태의 본질." },
+    id:"s2", tag:"지표 ②",
+    label:"사모신용 환매 동향 — 데이터센터 건설자금의 돈줄",
+    desc:"비상장 펀드 환매는 SEC 공시로만 나오지만, 상장 운용사·BDC 주가가 실시간 프록시 역할을 합니다. 급락 + 환매 뉴스 조합이 진짜 신호.",
+    tickers:[
+      { k:"OWL", name:"Blue Owl (사모신용 운용사)", y:"OWL", type:"yahoo",
+        up:"환매 사태 진정·자산 정상가 매각(예: 26.2월 $1.4B을 액면 99.7%에 매각) 등 신뢰 회복 신호. 지표② 완화.",
+        dn:"추가 환매 제한·NAV 논란·자산 헐값 매각 뉴스와 동반 하락이면 사모신용 → 데이터센터 자금 파이프가 좁아지는 중.",
+        note:"26년 1~4월 실사례: 테크 비히클 환매요청 40.7%, 크레딧 펀드 21.9% → 분기 5% 캡 발동, OBDC II 환매 영구 중단. 이 종목의 급락은 '남 얘기'가 아니라 지표② 그 자체." },
+      { k:"BIZD", name:"VanEck BDC ETF (사모신용 시장 전체)", y:"BIZD", type:"yahoo",
+        up:"BDC 전반의 NAV 할인 축소 = 환매 압력 완화. 사모신용 시장이 정상 작동 중.",
+        dn:"지수 전체가 미끄러지면 개별사 문제가 아니라 업계 전체의 자금이탈. 지표②의 광역 경보.",
+        note:"BDC = 상장된 사모신용 펀드. 비상장 펀드의 환매는 분기에 한 번 공시되지만 BIZD는 매일 거래되므로 선행지표로 기능." },
+      { k:"BXSL", name:"Blackstone Secured Lending", y:"BXSL", type:"yahoo",
+        up:"업계 1위 블랙스톤 계열이 견조하면 환매 사태가 Blue Owl 개별 이슈에 그친다는 뜻.",
+        dn:"BXSL까지 동반 급락하면 소프트웨어 대출 부실 우려가 업계 전체로 번지는 국면.",
+        note:"Blue Owl(개별 진앙지) vs BXSL·ARCC(업계 대표)를 나눠 보면 '개별 사고'인지 '시스템 문제'인지 구분 가능." },
+      { k:"ARCC", name:"Ares Capital (최대 BDC)", y:"ARCC", type:"yahoo",
+        up:"미국 최대 BDC의 안정 = 직접대출 시장의 기초체력 유지.",
+        dn:"ARCC의 배당 삭감·부실채권(non-accrual) 증가 뉴스와 동반 하락은 사모신용 사이클 하강의 확정 신호에 가까움.",
+        note:"BDC 포트폴리오의 약 20%가 소프트웨어 대출 — AI가 SaaS 기업을 파괴하면 사모신용이 먼저 다친다는 것이 26년 상반기 환매 사태의 본질." },
+    ],
+    links:[
+      { label:"SEC EDGAR — Blue Owl 8-K (환매 공시 원문)", url:"https://www.sec.gov/cgi-bin/browse-edgar?company=blue+owl&type=8-K&action=getcompany", tip:"분기 환매(tender) 결과가 주주서한으로 그대로 공시됨" },
     ],
   },
   {
-    id: "s34", tag: "지표 ①·③ 보조",
-    label: "위험선호 온도계 — HYG/LQD",
-    desc: "신디케이션 성공률·ABS 스프레드의 일간 프록시. 하이일드(HYG)가 투자등급(LQD)보다 약해지면 큰 부채 딜부터 소화가 안 되기 시작합니다.",
-    tickers: [
-      { k: "HYG", name: "하이일드 회사채 ETF", y: "HYG", type: "yahoo",
-        up: "위험선호 유지. 신용도 낮은 채권까지 팔린다 = SPV·프로젝트본드 신디케이션도 잘 돌아갈 환경.",
-        dn: "하이일드부터 매도 = 크레딧 위험회피의 시작. 대형 딜 소화 불량의 전조.",
-        note: "단독으로 보지 말고 LQD와의 상대강도로 볼 것." },
-      { k: "LQD", name: "투자등급 회사채 ETF", y: "LQD", type: "yahoo",
-        up: "금리 하락 또는 우량 크레딧 선호. HYG가 같이 오르면 건강한 랠리, LQD만 오르면 질적 도피(flight to quality).",
-        dn: "금리 상승 국면이면 중립. HYG와 동반 급락이면 크레딧 전반의 스트레스.",
-        note: "LQD에는 오라클 채권 등 IG 지수 구성종목 다수 포함 — 오라클이 기침하면 LQD도 반응." },
+    id:"s3", tag:"지표 ③",
+    label:"ABS·프로젝트본드 스프레드 — 데이터센터 부채의 가격",
+    desc:"데이터센터 전용 스프레드 지수는 없어서, 시장 전체 IG/HY 스프레드로 방향을 읽고(아래, 저장소 자동갱신) 개별 딜의 발행 스프레드는 CreditFlow에서 수동 확인합니다. 벤치마크: 신규 데이터센터 ABS 국채+150~200bp.",
+    tickers:[
+      { k:"IG_OAS", name:"미 투자등급 회사채 스프레드 (bp)", type:"fred", fred:"BAMLC0A0CM", scale:100, unit:"bp",
+        up:"확대 = 크레딧 시장 전반이 위험을 재평가 중. 데이터센터 부채(SPV·ABS 포함)의 조달비용이 함께 오르므로 '부외화 밸브'가 조여지는 방향.",
+        dn:"축소 = 크레딧 시장 평온. 빅테크의 부채 조달이 순조롭다는 뜻이고 AI Capex 지속 가능성에 우호적.",
+        note:"역사적 감각: 60~90bp 평시, 100bp 상회 시 스트레스, 130bp+ 위기 초입. FRED 데이터는 1영업일 지연." },
+      { k:"HY_OAS", name:"미 하이일드 스프레드 (bp)", type:"fred", fred:"BAMLH0A0HYM2", scale:100, unit:"bp",
+        up:"확대 = 저신용 기업부터 돈줄이 마르기 시작. IG보다 먼저, 크게 움직이는 조기경보기.",
+        dn:"축소 = 위험선호 유지. 사모신용·프로젝트본드 쪽 수요도 대체로 견조하다는 방증.",
+        note:"역사적 감각: 300bp 이하 과열, 350~500bp 정상~경계, 500bp+ 경보(경기침체 프라이싱). 닷컴·GFC 때는 800~2,000bp." },
+    ],
+    links:[
+      { label:"CreditFlow (구 Finsight) — 미국 ABS 발행 현황", url:"https://creditflowresearch.com/all-abs-market-bond-issuance-overview?products=ABS&regions=USOA", tip:"지표③ 원천: 데이터센터 ABS가 국채+몇 bp에 발행됐는지 딜별 확인. 2025.8월 Finsight에서 이전됨, 무료 가입 필요" },
+      { label:"KBRA — 데이터센터 ABS 프리세일 리포트 (무료 가입)", url:"https://www.kbra.com", tip:"신규 딜의 구조·등급·리스크 요약" },
+      { label:"FRED — 스프레드 시계열 원본", url:"https://fred.stlouisfed.org/series/BAMLC0A0CM", tip:"이 보드의 IG/HY 스프레드 데이터 출처" },
+    ],
+  },
+  {
+    id:"s4", tag:"지표 ④",
+    label:"빅테크 CDS 프록시 — 크레딧 시장의 부도 보험료",
+    desc:"CDS 실시간 호가는 기관 단말 영역. 여기서는 ORCL 주가로 같은 방향을 읽습니다. CDS 급등 뉴스는 아래 링크와 알림으로 확인.",
+    tickers:[
+      { k:"ORCL", name:"오라클 (CDS 대표 관측주)", y:"ORCL", type:"yahoo",
+        up:"자금조달 계획 명확화·백로그의 현금 전환 확인 등으로 크레딧 우려가 완화될 때 주가와 CDS는 반대로 움직이는 경향. 주가 반등 + CDS 하락 동반이면 밸브 정상.",
+        dn:"주가 하락이 CDS 상승과 동반되면 크레딧 경로의 경고. 주가만 빠지고 CDS가 조용하면 단순 밸류에이션 조정일 가능성. 반드시 'Oracle CDS' 뉴스와 교차 확인.",
+        note:"오라클 5년 CDS: 25.12월 ~126bp → 26.4월 ~198bp(사상 최고). 250bp 돌파 뉴스가 나오면 이 보드 전체를 경보 모드로 읽을 것. 부외 리스 약정 $248B가 FY26 3Q~2028 개시 예정." },
+    ],
+    links:[
+      { label:"FINRA 채권 데이터 — 오라클 회사채 수익률", url:"https://www.finra.org/finra-data/fixed-income", tip:"CDS 대신 오라클 개별 채권의 국채 대비 스프레드 직접 확인" },
+      { label:"Google Alerts — 'Oracle CDS' 키워드 등록", url:"https://www.google.com/alerts", tip:"급등 시 언론이 즉시 보도하므로 알림이 실질적 최선" },
     ],
   },
 ];
 
 const THRESHOLDS = [
-  { name: "오라클 5Y CDS (뉴스로 확인)", ok: "150bp 이하", warn: "150~250bp ← 현재 ~198bp", alert: "250bp 돌파" },
-  { name: "IG 스프레드 (아래 자동)", ok: "90bp 이하", warn: "90~130bp", alert: "130bp 초과", key: "IG_OAS", lo: 90, hi: 130 },
-  { name: "HY 스프레드 (아래 자동)", ok: "350bp 이하", warn: "350~500bp", alert: "500bp 초과", key: "HY_OAS", lo: 350, hi: 500 },
-  { name: "신규 데이터센터 ABS 발행 (Finsight 수동)", ok: "국채+150~200bp", warn: "+200~250bp", alert: "+250bp 이상 또는 딜 철회" },
-];
-
-const LINKS = [
-  { label: "Finsight — 신규 ABS 발행 스프레드 DB (무료)", url: "https://finsight.com/abs", tip: "지표③: 데이터센터 ABS가 국채+몇 bp에 발행됐는지 딜별 확인" },
-  { label: "SEC EDGAR — Blue Owl 8-K (환매 공시 원문)", url: "https://www.sec.gov/cgi-bin/browse-edgar?company=blue+owl&type=8-K&action=getcompany", tip: "지표②: 분기 환매(tender) 결과가 주주서한으로 그대로 공시됨" },
-  { label: "FINRA 채권 데이터 — 오라클 회사채 수익률", url: "https://www.finra.org/finra-data/fixed-income", tip: "지표④: CDS 대신 오라클 개별 채권의 국채 대비 스프레드 직접 확인" },
-  { label: "KBRA — 데이터센터 ABS 프리세일 리포트 (무료 가입)", url: "https://www.kbra.com", tip: "지표③: 신규 딜의 구조·등급·리스크 요약" },
-  { label: "FRED — 스프레드 시계열 원본", url: "https://fred.stlouisfed.org/series/BAMLC0A0CM", tip: "이 보드의 IG/HY 스프레드 데이터 출처" },
-  { label: "Google Alerts — 키워드 자동 감시 설정", url: "https://www.google.com/alerts", tip: "추천 키워드: Oracle CDS / data center ABS / private credit redemption / data center SPV" },
+  { name:"① 신규 데이터센터 ABS 발행 (CreditFlow 수동)", ok:"국채+150~200bp", warn:"+200~250bp", alert:"+250bp 이상 또는 딜 철회" },
+  { name:"② 사모신용 환매 (뉴스·공시 수동)", ok:"환매요청 분기 5% 캡 이내", warn:"캡 초과 요청 지속", alert:"환매 중단·자산 헐값 매각 확산" },
+  { name:"③ IG 스프레드 (자동)", ok:"90bp 이하", warn:"90~130bp", alert:"130bp 초과", key:"IG_OAS", lo:90, hi:130 },
+  { name:"③ HY 스프레드 (자동)", ok:"350bp 이하", warn:"350~500bp", alert:"500bp 초과", key:"HY_OAS", lo:350, hi:500 },
+  { name:"④ 오라클 5Y CDS (뉴스로 확인)", ok:"150bp 이하", warn:"150~250bp ← 현재 ~198bp", alert:"250bp 돌파" },
 ];
 
 const TF = [
-  { id: "1mo", label: "1개월", range: "1mo", interval: "1d" },
-  { id: "6mo", label: "6개월", range: "6mo", interval: "1d" },
-  { id: "1y", label: "1년", range: "1y", interval: "1wk" },
+  { id:"1mo", label:"1개월", range:"1mo", interval:"1d", days:31 },
+  { id:"6mo", label:"6개월", range:"6mo", interval:"1d", days:185 },
+  { id:"1y", label:"1년", range:"1y", interval:"1wk", days:370 },
 ];
 
 // ───────── 상태 ─────────
 let quotes = {};
+let fredData = {};      // { IG_OAS:[{d,v}], HY_OAS:[{d,v}] } — bp 단위 변환 후
+let fredSource = null;  // "repo" | "proxy" | null
 let openKey = null;
 let tfByKey = {};
 let guideOpen = true;
+let loadedOnce = false;
 const chartCache = {};
 let refreshing = false;
 
-// ───────── 데이터 페치 (직접 → CORS 프록시 폴백) ─────────
+// ───────── 데이터 페치 ─────────
 async function fetchWithFallback(url, asText) {
   const candidates = [
     url,
     "https://corsproxy.io/?url=" + encodeURIComponent(url),
     "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+    "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url),
   ];
   for (const u of candidates) {
     try {
@@ -245,14 +270,36 @@ async function fetchYahoo(sym, range, interval) {
   };
 }
 
-async function fetchFred(id, days) {
-  const start = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
-  const url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=" + id + "&cosd=" + start;
-  const txt = await fetchWithFallback(url, true);
-  return txt.trim().split("\n").slice(1)
-    .map(function (l) { return l.split(","); })
-    .filter(function (c) { return c[1] && c[1] !== "."; })
-    .map(function (c) { return { d: c[0], v: parseFloat(c[1]) }; });
+// FRED: 1순위 = 저장소 안의 data/oas.json (GitHub Actions가 매일 갱신, CORS 없음)
+//        2순위 = fredgraph.csv 프록시 경유 (백업)
+async function loadFred() {
+  try {
+    const r = await fetch("data/oas.json", { cache: "no-store" });
+    if (r.ok) {
+      const j = await r.json();
+      const out = {};
+      for (const key of ["IG_OAS", "HY_OAS"]) {
+        if (j[key] && j[key].length) {
+          out[key] = j[key].map(function (row) { return { d: row.d, v: row.v * 100 }; });
+        }
+      }
+      if (out.IG_OAS || out.HY_OAS) { fredData = out; fredSource = "repo"; return; }
+    }
+  } catch (e) { /* 파일 없음 → 프록시 백업 */ }
+
+  const map = { IG_OAS: "BAMLC0A0CM", HY_OAS: "BAMLH0A0HYM2" };
+  for (const key in map) {
+    try {
+      const start = new Date(Date.now() - 420 * 86400000).toISOString().slice(0, 10);
+      const url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=" + map[key] + "&cosd=" + start;
+      const txt = await fetchWithFallback(url, true);
+      fredData[key] = txt.trim().split("\n").slice(1)
+        .map(function (l) { return l.split(","); })
+        .filter(function (c) { return c[1] && c[1] !== "."; })
+        .map(function (c) { return { d: c[0], v: parseFloat(c[1]) * 100 }; });
+      fredSource = "proxy";
+    } catch (e) { /* 실패 시 해당 지표만 미표시 */ }
+  }
 }
 
 // ───────── 유틸 ─────────
@@ -267,45 +314,43 @@ function findTicker(k) {
 }
 function lightColor(key, lo, hi) {
   const q = quotes[key];
-  if (!q) return DIM;
-  if (q.price > hi) return ALERT;
-  if (q.price > lo) return WARN;
-  return OK;
+  if (!q) return "var(--dim)";
+  if (q.price > hi) return "var(--up)";
+  if (q.price > lo) return "var(--warn)";
+  return "var(--ok)";
 }
 
 // ───────── 렌더 ─────────
 function renderThresholds() {
   let inner = '<div class="cardHead" onclick="toggleGuide()">' +
-    '<span class="cardTitle">경보 임계값 신호등</span>' +
+    '<span class="cardTitle">경보 임계값 신호등 (지표 ①~④)</span>' +
     '<span class="caret">' + (guideOpen ? "▲" : "▼") + "</span></div>";
   if (guideOpen) {
     for (const th of THRESHOLDS) {
-      const c = th.key ? lightColor(th.key, th.lo, th.hi) : DIM;
+      const c = th.key ? lightColor(th.key, th.lo, th.hi) : "var(--dim)";
       const val = th.key && quotes[th.key]
         ? '<span class="mono thVal" style="color:' + c + '">' + fmt(quotes[th.key].price) + "bp</span>" : "";
       inner += '<div class="thRow"><span class="dot" style="background:' + c + '"></span>' +
         '<div style="flex:1"><div class="thName">' + th.name + val + "</div>" +
-        '<div class="thLevels"><span style="color:' + OK + '">정상 ' + th.ok + "</span> · " +
-        '<span style="color:' + WARN + '">경계 ' + th.warn + "</span> · " +
-        '<span style="color:' + ALERT + '">경보 ' + th.alert + "</span></div></div></div>";
+        '<div class="thLevels"><span style="color:var(--ok)">정상 ' + th.ok + "</span> · " +
+        '<span style="color:var(--warn)">경계 ' + th.warn + "</span> · " +
+        '<span style="color:var(--up)">경보 ' + th.alert + "</span></div></div></div>";
     }
-    inner += '<div class="guideNote">읽는 법: 4개 중 <b>2개 이상이 경보</b>로 넘어가면 "부외화 밸브 폐쇄" 국면 진입으로 간주 — ' +
+    inner += '<div class="guideNote">읽는 법: 4개 지표 중 <b>2개 이상이 경보</b>로 넘어가면 "부외화 밸브 폐쇄" 국면 진입으로 간주 — ' +
       "메모리 반도체 포지션(하이닉스·FORM·메모리 ETF·DRAM ETF)의 축소 검토를 시작할 것. 단일 지표의 하루 점등은 노이즈.</div>";
   }
   document.getElementById("thresholdCard").innerHTML = '<div class="card">' + inner + "</div>";
 }
 
-function renderRatio() {
-  const el = document.getElementById("ratioCard");
+function ratioHTML() {
   const r = quotes.RATIO;
-  if (!r) { el.innerHTML = ""; return; }
+  if (!r) return "";
   const chg = ((r.price - r.prev) / r.prev) * 100;
-  const cls = chg >= 0 ? "cUp" : "cDn";
+  const cls = chg >= 0 ? UP_TXT : DN_TXT;
   const arrow = chg >= 0 ? "▲" : "▼";
-  const hint = chg >= 0
-    ? "하이일드 우위 = 위험선호 유지"
-    : "하이일드 열위 = 위험회피 조짐, 추세화되면 지표①·③ 악화 전조";
-  el.innerHTML = '<div class="ratioCard"><span class="ratioLabel">HYG / LQD 상대강도</span>' +
+  const hint = chg >= 0 ? "하이일드 우위 = 위험선호 유지"
+    : "하이일드 열위 = 위험회피 조짐, 추세화되면 신디케이션 환경 악화 전조";
+  return '<div class="ratioBox"><span class="ratioLabel">HYG / LQD 상대강도</span>' +
     '<span class="mono" style="font-weight:700;font-size:15px">' + r.price.toFixed(4) + "</span>" +
     '<span class="mono ' + cls + '" style="font-size:12.5px;font-weight:700">' + arrow + Math.abs(chg).toFixed(2) + "%</span>" +
     '<span class="ratioHint">' + hint + "</span></div>";
@@ -313,13 +358,17 @@ function renderRatio() {
 
 function rowHTML(t) {
   const q = quotes[t.k];
-  let right = '<span class="skeleton mono">로딩…</span>';
+  let right;
   if (q) {
     const chg = q.prev ? ((q.price - q.prev) / Math.abs(q.prev)) * 100 : null;
-    const cls = chg == null ? "" : (chg >= 0 ? "cUp" : "cDn");
+    const cls = chg == null ? "" : (chg >= 0 ? UP_TXT : DN_TXT);
     const chgTxt = chg == null ? "" : (chg >= 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2) + "%";
     right = '<span class="price mono">' + fmt(q.price) + (t.unit || "") + "</span>" +
       '<span class="chg mono ' + cls + '">' + chgTxt + "</span>";
+  } else if (loadedOnce) {
+    right = '<span class="failTxt">불러오기 실패 · 새로고침</span>';
+  } else {
+    right = '<span class="skeleton mono">로딩…</span>';
   }
   let html = '<div class="rowWrap"><div class="row" onclick="toggleRow(\'' + t.k + '\')">' +
     '<div style="flex:1;min-width:0"><span class="tk mono">' + t.k + '</span>' +
@@ -334,9 +383,9 @@ function rowHTML(t) {
     html += '<div class="panel"><div class="tfRow">' + tfBtns + "</div>" +
       '<div id="chart-' + t.k + '"><div class="chartMsg">차트 불러오는 중…</div></div>' +
       '<div class="interp">' +
-      '<div class="interpBlock" style="border-left:3px solid ' + UP + '"><b class="cUp">상승 시</b> ' + t.up + "</div>" +
-      '<div class="interpBlock" style="border-left:3px solid ' + DN + '"><b class="cDn">하락 시</b> ' + t.dn + "</div>" +
-      '<div class="interpBlock" style="border-left:3px solid #8B93A7"><b style="color:#C7CDDB">◎ 참고</b> ' + t.note + "</div>" +
+      '<div class="interpBlock" style="border-left:3px solid var(--up)"><b class="cUp">상승 시</b> ' + t.up + "</div>" +
+      '<div class="interpBlock" style="border-left:3px solid var(--dn)"><b class="cDn">하락 시</b> ' + t.dn + "</div>" +
+      '<div class="interpBlock" style="border-left:3px solid var(--dim)"><b style="color:var(--soft)">◎ 참고</b> ' + t.note + "</div>" +
       "</div></div>";
   }
   return html + "</div>";
@@ -348,23 +397,18 @@ function renderSections() {
     html += '<div class="section"><div class="secHead"><span class="secTag mono">' + sec.tag +
       '</span><span class="secLabel">' + sec.label + "</span></div>" +
       '<div class="secDesc">' + sec.desc + "</div>";
+    if (sec.ratio) html += ratioHTML();
     for (const t of sec.tickers) html += rowHTML(t);
+    if (sec.links) {
+      for (const l of sec.links) {
+        html += '<a class="linkRow" href="' + l.url + '" target="_blank" rel="noreferrer">' +
+          '<div class="linkLabel">' + l.label + ' ↗</div><div class="linkTip">' + l.tip + "</div></a>";
+      }
+    }
     html += "</div>";
   }
   document.getElementById("sections").innerHTML = html;
   if (openKey) loadChart(openKey);
-}
-
-function renderLinks() {
-  let html = '<div class="section"><div class="secHead"><span class="secTag mono">지표 ①·③</span>' +
-    '<span class="secLabel">주 1회 수동 점검 — 시세로는 안 잡히는 것들</span></div>' +
-    '<div class="secDesc">SPV 신디케이션 성공 여부(①)와 데이터센터 ABS 발행 스프레드(③)는 딜 단위 사건이라 ' +
-    "아래 원천을 금요일에 한 번씩 직접 확인하는 것이 정확합니다. 5분이면 충분.</div>";
-  for (const l of LINKS) {
-    html += '<a class="linkRow" href="' + l.url + '" target="_blank" rel="noreferrer">' +
-      '<div class="linkLabel">' + l.label + ' ↗</div><div class="linkTip">' + l.tip + "</div></a>";
-  }
-  document.getElementById("linksSection").innerHTML = html + "</div>";
 }
 
 function chartSVG(series, color) {
@@ -379,7 +423,7 @@ function chartSVG(series, color) {
   }).join(" ");
   const first = series[0], last = series[series.length - 1];
   const ret = ((last - first) / Math.abs(first)) * 100;
-  const retCls = ret >= 0 ? "cUp" : "cDn";
+  const retCls = ret >= 0 ? UP_TXT : DN_TXT;
   return '<div class="chartStats mono"><span class="' + retCls + '" style="font-weight:700">기간 ' +
     (ret >= 0 ? "+" : "") + ret.toFixed(2) + "%</span>" +
     '<span class="chartMinMax">고 ' + fmt(max) + " · 저 " + fmt(min) + "</span></div>" +
@@ -392,22 +436,23 @@ async function loadChart(key) {
   const el = document.getElementById("chart-" + key);
   if (!t || !el) return;
   const tf = tfByKey[key] || "1mo";
+  const conf = TF.find(function (x) { return x.id === tf; });
   const cacheKey = key + ":" + tf;
   const q = quotes[key];
   const chg = q && q.prev ? q.price - q.prev : 0;
-  const color = chg >= 0 ? UP : DN;
+  const color = chg >= 0 ? upColor() : dnColor();
 
   if (chartCache[cacheKey]) { el.innerHTML = chartSVG(chartCache[cacheKey], color); return; }
   try {
     let series;
     if (t.type === "yahoo") {
-      const conf = TF.find(function (x) { return x.id === tf; });
       const d = await fetchYahoo(t.y, conf.range, conf.interval);
       series = d.series;
     } else {
-      const days = tf === "1mo" ? 45 : tf === "6mo" ? 200 : 400;
-      const rows = await fetchFred(t.fred, days);
-      series = rows.map(function (r) { return r.v * (t.scale || 1); });
+      const rows = fredData[key] || [];
+      const cutoff = new Date(Date.now() - conf.days * 86400000).toISOString().slice(0, 10);
+      series = rows.filter(function (r) { return r.d >= cutoff; }).map(function (r) { return r.v; });
+      if (!series.length) throw new Error("no fred data");
     }
     chartCache[cacheKey] = series;
     const el2 = document.getElementById("chart-" + key);
@@ -418,10 +463,29 @@ async function loadChart(key) {
   }
 }
 
-// ───────── 이벤트 핸들러 (전역) ─────────
+// ───────── 이벤트 (전역) ─────────
 window.toggleGuide = function () { guideOpen = !guideOpen; renderThresholds(); };
 window.toggleRow = function (k) { openKey = (openKey === k ? null : k); renderSections(); };
 window.setTf = function (k, tf) { tfByKey[k] = tf; renderSections(); };
+
+// ───────── 테마 ─────────
+function applyTheme(mode) {
+  document.documentElement.setAttribute("data-theme", mode);
+  document.getElementById("metaTheme").setAttribute("content", mode === "light" ? "#F2F4F9" : "#0E1220");
+  document.getElementById("themeBtn").textContent = mode === "light" ? "다크" : "라이트";
+  try { localStorage.setItem("cv-theme", mode); } catch (e) {}
+}
+function initTheme() {
+  let mode = null;
+  try { mode = localStorage.getItem("cv-theme"); } catch (e) {}
+  if (!mode) {
+    mode = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+  }
+  applyTheme(mode);
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light");
+  });
+}
 
 // ───────── 시세 전체 갱신 ─────────
 async function loadAll() {
@@ -431,47 +495,51 @@ async function loadAll() {
   btn.disabled = true; btn.textContent = "갱신 중…";
 
   const next = {};
-  const jobs = [];
+  const jobs = [loadFred()];
   for (const sec of SECTIONS) {
     for (const t of sec.tickers) {
+      if (t.type !== "yahoo") continue;
       jobs.push((async function (tt) {
         try {
-          if (tt.type === "yahoo") {
-            const d = await fetchYahoo(tt.y, "5d", "1d");
-            next[tt.k] = { price: d.price, prev: d.prev };
-          } else {
-            const rows = await fetchFred(tt.fred, 20);
-            if (rows.length >= 2) {
-              const s = tt.scale || 1;
-              next[tt.k] = { price: rows[rows.length - 1].v * s, prev: rows[rows.length - 2].v * s };
-            }
-          }
+          const d = await fetchYahoo(tt.y, "5d", "1d");
+          next[tt.k] = { price: d.price, prev: d.prev };
         } catch (e) { /* 개별 실패 무시 */ }
       })(t));
     }
   }
   await Promise.all(jobs);
 
+  // FRED → 시세행
+  for (const key of ["IG_OAS", "HY_OAS"]) {
+    const rows = fredData[key];
+    if (rows && rows.length >= 2) {
+      next[key] = { price: rows[rows.length - 1].v, prev: rows[rows.length - 2].v };
+    }
+  }
   if (next.HYG && next.LQD) {
     next.RATIO = { price: next.HYG.price / next.LQD.price, prev: next.HYG.prev / next.LQD.prev };
   }
-  quotes = Object.keys(next).length ? next : quotes;
+  for (const k in next) quotes[k] = next[k];
+  loadedOnce = true;
 
   const now = new Date();
+  const srcTxt = fredSource === "repo" ? "스프레드: 저장소 자동갱신" :
+    fredSource === "proxy" ? "스프레드: 우회 서버" : "스프레드: 미수신";
   document.getElementById("updated").className = "mono";
   document.getElementById("updated").textContent =
-    "마지막 갱신: " + now.toLocaleString("ko-KR") + " · 야후 약 15분 지연 · FRED 1영업일 지연";
+    "마지막 갱신: " + now.toLocaleString("ko-KR") + " · 야후 약 15분 지연 · " + srcTxt;
   try {
     localStorage.setItem("credit-valve-cache", JSON.stringify({ q: quotes, u: now.toISOString() }));
-  } catch (e) { /* 저장 실패 무시 */ }
+  } catch (e) {}
 
-  renderThresholds(); renderRatio(); renderSections();
+  renderThresholds(); renderSections();
   btn.disabled = false; btn.textContent = "새로고침";
   refreshing = false;
 }
 
 // ───────── 초기화 ─────────
 (function init() {
+  initTheme();
   try {
     const c = localStorage.getItem("credit-valve-cache");
     if (c) {
@@ -481,14 +549,12 @@ async function loadAll() {
       document.getElementById("updated").textContent =
         "마지막 갱신: " + new Date(p.u).toLocaleString("ko-KR") + " (캐시)";
     }
-  } catch (e) { /* 캐시 없음 */ }
-  renderThresholds(); renderRatio(); renderSections(); renderLinks();
+  } catch (e) {}
+  renderThresholds(); renderSections();
   document.getElementById("refreshBtn").addEventListener("click", loadAll);
   loadAll();
-
-  // 서비스워커 등록 (오프라인 캐시)
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(function () { /* 미지원 환경 무시 */ });
+    navigator.serviceWorker.register("sw.js").catch(function () {});
   }
 })();
 </script>
