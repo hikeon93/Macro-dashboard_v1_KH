@@ -14,26 +14,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: FRED 스프레드 데이터 수집
+      - name: FRED 스프레드 데이터 수집 (공식 API)
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
+          if [ -z "$FRED_API_KEY" ]; then
+            echo "::error::FRED_API_KEY 시크릿이 설정되지 않았습니다. Settings > Secrets and variables > Actions에서 추가하세요."
+            exit 1
+          fi
           mkdir -p data
           START=$(date -d "420 days ago" +%Y-%m-%d)
-          curl -sf --retry 3 --retry-delay 15 "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLC0A0CM&cosd=$START" \
-            -H "User-Agent: Mozilla/5.0" -o /tmp/ig.csv
-          curl -sf --retry 3 --retry-delay 15 "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=$START" \
-            -H "User-Agent: Mozilla/5.0" -o /tmp/hy.csv
+          curl -sf --retry 3 --retry-delay 15 \
+            "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&api_key=${FRED_API_KEY}&file_type=json&observation_start=$START" \
+            -o /tmp/ig.json
+          curl -sf --retry 3 --retry-delay 15 \
+            "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&api_key=${FRED_API_KEY}&file_type=json&observation_start=$START" \
+            -o /tmp/hy.json
           python3 << 'EOF'
           import json, datetime
 
           def parse(path):
-              rows = [l.split(",") for l in open(path).read().strip().split("\n")[1:]]
-              return [{"d": r[0], "v": float(r[1])} for r in rows
-                      if len(r) > 1 and r[1] not in (".", "")]
+              obs = json.load(open(path))["observations"]
+              return [{"d": o["date"], "v": float(o["value"])}
+                      for o in obs if o["value"] not in (".", "")]
 
           out = {
               "updated": datetime.datetime.now(datetime.UTC).isoformat(),
-              "IG_OAS": parse("/tmp/ig.csv"),
-              "HY_OAS": parse("/tmp/hy.csv"),
+              "IG_OAS": parse("/tmp/ig.json"),
+              "HY_OAS": parse("/tmp/hy.json"),
           }
           json.dump(out, open("data/oas.json", "w"))
           print("IG:", len(out["IG_OAS"]), "HY:", len(out["HY_OAS"]))
